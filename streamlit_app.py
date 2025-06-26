@@ -132,7 +132,7 @@ KPI_TARGETS = _build_kpi_targets(KPI_COLOR_RANGES)
 def load_and_clean_file(path):
     """Load a device export file (.csv or .xlsx) and clean column names."""
     fn = os.path.basename(path)
-    match = re.match(r"(SM\d+)_export_.*\.(csv|xlsx)", fn, re.IGNORECASE)
+    match = re.match(r"((?:AS|SM)\d+)_export_.*\.(csv|xlsx)", fn, re.IGNORECASE)
     device = match.group(1) if match else "Unknown"
 
     if fn.lower().endswith('.xlsx'):
@@ -200,8 +200,8 @@ def dewpoint_f(temp_f, rh):
     return dew_c * 9.0 / 5.0 + 32
 
 # --- Device groupings for KPI Summary ---
-main = [f"SM{i:02d}" for i in range(2, 4)]
-crawlspace = [f"SM{i:02d}" for i in range(4, 6)]
+main = [f"AS{i:02d}" for i in range(2, 4)]
+crawlspace = [f"AS{i:02d}" for i in range(4, 6)]
 attic = []  # placeholder for any future attic sensors
 
 location_map = {d: "Main" for d in main}
@@ -238,8 +238,8 @@ end_date = date_cols[1].date_input(
 )
 
 # Load and prepare data
-pattern_csv = os.path.join(FOLDER, 'SM*_export_*.csv')
-pattern_xlsx = os.path.join(FOLDER, 'SM*_export_*.xlsx')
+pattern_csv = os.path.join(FOLDER, '*_export_*.csv')
+pattern_xlsx = os.path.join(FOLDER, '*_export_*.xlsx')
 files = glob.glob(pattern_csv) + glob.glob(pattern_xlsx)
 
 # Read device data
@@ -247,24 +247,25 @@ device_dfs = {
     load_and_clean_file(f)['Device'].iloc[0]: load_and_clean_file(f)
     for f in files
 }
-# Align timestamps
-master = max(device_dfs, key=lambda d: len(device_dfs[d]))
-master_times = device_dfs[master].sort_values('Timestamp')['Timestamp']
+
 records = []
-for dev, df in device_dfs.items():
-    tmp = df.set_index('Timestamp').reindex(
-        master_times, method='nearest', tolerance=pd.Timedelta(minutes=30)
-    )
-    filled_t, flag_t = fill_and_flag(tmp['Temp_F'])
-    filled_r, _ = fill_and_flag(tmp['RH'])
-    tmp['Temp_F'] = filled_t
-    tmp['RH'] = filled_r
-    tmp['Dewpoint_F'] = dewpoint_f(tmp['Temp_F'], tmp['RH'])
-    tmp['Interpolated'] = flag_t
-    tmp['Device'] = dev
-    tmp['DeviceName'] = DEVICE_LABELS.get(dev, dev)
-    tmp['Location'] = location_map.get(dev, 'Outdoor')
-    records.append(tmp.reset_index().rename(columns={'index': 'Timestamp'}))
+if device_dfs:
+    master = max(device_dfs, key=lambda d: len(device_dfs[d]))
+    master_times = device_dfs[master].sort_values('Timestamp')['Timestamp']
+    for dev, df in device_dfs.items():
+        tmp = df.set_index('Timestamp').reindex(
+            master_times, method='nearest', tolerance=pd.Timedelta(minutes=30)
+        )
+        filled_t, flag_t = fill_and_flag(tmp['Temp_F'])
+        filled_r, _ = fill_and_flag(tmp['RH'])
+        tmp['Temp_F'] = filled_t
+        tmp['RH'] = filled_r
+        tmp['Dewpoint_F'] = dewpoint_f(tmp['Temp_F'], tmp['RH'])
+        tmp['Interpolated'] = flag_t
+        tmp['Device'] = dev
+        tmp['DeviceName'] = DEVICE_LABELS.get(dev, dev)
+        tmp['Location'] = location_map.get(dev, 'Outdoor')
+        records.append(tmp.reset_index().rename(columns={'index': 'Timestamp'}))
 
 # Combined DataFrame filtered by date
 if records:
@@ -300,7 +301,7 @@ group_ui(main, 'Main')
 group_ui(crawlspace, 'Crawlspace')
 # Outdoor Reference
 st.sidebar.markdown("**Outdoor Reference**")
-for d in ['SM01']:
+for d in ['AS10']:
     if d in devices:
         key = f'chk_{d}'
         st.session_state.setdefault(key, True)
@@ -465,7 +466,7 @@ with tab2:
 
         # Normalized Differences
         st.header('Normalized Temperature Difference')
-        df_out = df[df['Device']=='SM01'][['Timestamp','Temp_F','RH']].rename(columns={'Temp_F':'T_out','RH':'RH_out'})
+        df_out = df[df['Device']=='AS10'][['Timestamp','Temp_F','RH']].rename(columns={'Temp_F':'T_out','RH':'RH_out'})
         df_norm = df.merge(df_out, on='Timestamp')
         df_norm['DeviceName'] = df_norm['Device'].map(DEVICE_LABELS).fillna(df_norm['Device'])
         df_norm['Norm_T'] = df_norm['Temp_F'] - df_norm['T_out']
