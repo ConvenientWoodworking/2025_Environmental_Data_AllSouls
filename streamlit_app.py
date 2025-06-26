@@ -233,8 +233,12 @@ FOLDER = './data'
 # Single date range selector
 date_cols = st.sidebar.columns(2)
 date_cols[0].write('Start date')
+# Default the start date to the beginning of the current quarter
+today = datetime.today()
+quarter_start_month = ((today.month - 1) // 3) * 3 + 1
+current_quarter_start = datetime(today.year, quarter_start_month, 1)
 start_date = date_cols[0].date_input(
-    "Start Date", value=datetime(2025, 1, 1), label_visibility="collapsed"
+    "Start Date", value=current_quarter_start, label_visibility="collapsed"
 )
 date_cols[1].write('End date')
 end_date = date_cols[1].date_input(
