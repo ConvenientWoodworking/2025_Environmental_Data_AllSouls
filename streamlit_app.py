@@ -419,96 +419,99 @@ with tab2:
         st.info("No data available for the selected date range.")
     else:
         df = df_all[df_all['Device'].isin(selected_devices)]
-        # Temperature plot
-        st.header('Temperature Data')
-        df['DeviceName'] = df['Device'].map(DEVICE_LABELS).fillna(df['Device'])
-        df_t = df.melt(id_vars=['Timestamp','DeviceName','Interpolated'], value_vars=['Temp_F'], var_name='Metric')
-        line_temp = alt.Chart(df_t).mark_line().encode(
-            x=alt.X('Timestamp:T', axis=alt.Axis(format='%m/%d')),
-            y=alt.Y('value:Q', title='Temperature (°F)'),
-            color='DeviceName:N'
-        )
-        pts_temp = alt.Chart(df_t[df_t['Interpolated']]).mark_circle(size=50, color='red').encode(
-            x='Timestamp:T', y='value:Q'
-        )
-        st.altair_chart(line_temp + pts_temp, use_container_width=True)
-
-        # Relative Humidity plot
-        st.header('Relative Humidity Data')
-        df_r = df.melt(id_vars=['Timestamp','DeviceName','Interpolated'], value_vars=['RH'], var_name='Metric')
-        line_rh = alt.Chart(df_r).mark_line().encode(
-            x=alt.X('Timestamp:T', axis=alt.Axis(format='%m/%d')),
-            y=alt.Y('value:Q', title='Relative Humidity (%)'),
-            color='DeviceName:N'
-        )
-        pts_rh = alt.Chart(df_r[df_r['Interpolated']]).mark_circle(size=50, color='red').encode(
-            x='Timestamp:T', y='value:Q'
-        )
-        st.altair_chart(line_rh + pts_rh, use_container_width=True)
-
-        # Correlation matrices
-        st.header('Correlation Matrix (Temperature)')
-        corr_t = compute_correlations(df, field='Temp_F')
-        df_ct = corr_t.reset_index().rename(columns={'index':'DeviceName'}).melt(
-            id_vars='DeviceName', var_name='DeviceName2', value_name='Corr'
-        )
-        heat_t = alt.Chart(df_ct).mark_rect().encode(
-            x='DeviceName2:O', y='DeviceName:O', color='Corr:Q'
-        ).properties(width=400, height=400)
-        st.altair_chart(heat_t, use_container_width=False)
-
-        st.header('Correlation Matrix (Relative Humidity)')
-        corr_h = compute_correlations(df, field='RH')
-        df_ch = corr_h.reset_index().rename(columns={'index':'DeviceName'}).melt(
-            id_vars='DeviceName', var_name='DeviceName2', value_name='Corr'
-        )
-        heat_h = alt.Chart(df_ch).mark_rect().encode(
-            x='DeviceName2:O', y='DeviceName:O', color='Corr:Q'
-        ).properties(width=400, height=400)
-        st.altair_chart(heat_h, use_container_width=False)
-
-        # Normalized Differences
-        st.header('Normalized Temperature Difference')
-        df_out = df[df['Device']=='AS10'][['Timestamp','Temp_F','RH']].rename(columns={'Temp_F':'T_out','RH':'RH_out'})
-        df_norm = df.merge(df_out, on='Timestamp')
-        df_norm['DeviceName'] = df_norm['Device'].map(DEVICE_LABELS).fillna(df_norm['Device'])
-        df_norm['Norm_T'] = df_norm['Temp_F'] - df_norm['T_out']
-        chart_norm_t = alt.Chart(df_norm).mark_line().encode(
-            x=alt.X('Timestamp:T', axis=alt.Axis(format='%m/%d')),
-            y=alt.Y('Norm_T:Q', title='Temp Difference (°F)'),
-            color='DeviceName:N'
-        )
-        st.altair_chart(chart_norm_t, use_container_width=True)
-
-        st.header('Normalized Relative Humidity Difference')
-        df_norm['Norm_RH'] = df_norm['RH'] - df_norm['RH_out']
-        chart_norm_rh = alt.Chart(df_norm).mark_line().encode(
-            x=alt.X('Timestamp:T', axis=alt.Axis(format='%m/%d')),
-            y=alt.Y('Norm_RH:Q', title='RH Difference (%)'),
-            color='DeviceName:N'
-        )
-        st.altair_chart(chart_norm_rh, use_container_width=True)
-
-        # Pearson Corr vs Outdoor Reference
-        st.header('Pearson Corr vs Outdoor Reference (Temp)')
-        if 'AS10' not in selected_devices:
-            st.info('Outdoor reference data must be selected to display Pearson Correlation')
+        if df.empty:
+            st.info('No data available for the selected devices.')
         else:
-            cvt = compute_correlations(df, field='Temp_F')['Outdoor Reference']
-            st.table(cvt.reset_index().rename(columns={'index':'DeviceName','Outdoor Reference':'Corr'}))
+            # Temperature plot
+            st.header('Temperature Data')
+            df['DeviceName'] = df['Device'].map(DEVICE_LABELS).fillna(df['Device'])
+            df_t = df.melt(id_vars=['Timestamp','DeviceName','Interpolated'], value_vars=['Temp_F'], var_name='Metric')
+            line_temp = alt.Chart(df_t).mark_line().encode(
+                x=alt.X('Timestamp:T', axis=alt.Axis(format='%m/%d')),
+                y=alt.Y('value:Q', title='Temperature (°F)'),
+                color='DeviceName:N'
+            )
+            pts_temp = alt.Chart(df_t[df_t['Interpolated']]).mark_circle(size=50, color='red').encode(
+                x='Timestamp:T', y='value:Q'
+            )
+            st.altair_chart(line_temp + pts_temp, use_container_width=True)
 
-        st.header('Pearson Corr vs Outdoor Reference (RH)')
-        if 'AS10' not in selected_devices:
-            st.info('Outdoor reference data must be selected to display Pearson Correlation')
-        else:
-            cvr = compute_correlations(df, field='RH')['Outdoor Reference']
-            st.table(cvr.reset_index().rename(columns={'index':'DeviceName','Outdoor Reference':'Corr'}))
+            # Relative Humidity plot
+            st.header('Relative Humidity Data')
+            df_r = df.melt(id_vars=['Timestamp','DeviceName','Interpolated'], value_vars=['RH'], var_name='Metric')
+            line_rh = alt.Chart(df_r).mark_line().encode(
+                x=alt.X('Timestamp:T', axis=alt.Axis(format='%m/%d')),
+                y=alt.Y('value:Q', title='Relative Humidity (%)'),
+                color='DeviceName:N'
+            )
+            pts_rh = alt.Chart(df_r[df_r['Interpolated']]).mark_circle(size=50, color='red').encode(
+                x='Timestamp:T', y='value:Q'
+            )
+            st.altair_chart(line_rh + pts_rh, use_container_width=True)
 
-        # Summary Statistics
-        st.header('Summary Statistics (Temperature)')
-        st.dataframe(compute_summary_stats(df, field='Temp_F'))
-        st.header('Summary Statistics (Relative Humidity)')
-        st.dataframe(compute_summary_stats(df, field='RH'))
+            # Correlation matrices
+            st.header('Correlation Matrix (Temperature)')
+            corr_t = compute_correlations(df, field='Temp_F')
+            df_ct = corr_t.reset_index().rename(columns={'index':'DeviceName'}).melt(
+                id_vars='DeviceName', var_name='DeviceName2', value_name='Corr'
+            )
+            heat_t = alt.Chart(df_ct).mark_rect().encode(
+                x='DeviceName2:O', y='DeviceName:O', color='Corr:Q'
+            ).properties(width=400, height=400)
+            st.altair_chart(heat_t, use_container_width=False)
+
+            st.header('Correlation Matrix (Relative Humidity)')
+            corr_h = compute_correlations(df, field='RH')
+            df_ch = corr_h.reset_index().rename(columns={'index':'DeviceName'}).melt(
+                id_vars='DeviceName', var_name='DeviceName2', value_name='Corr'
+            )
+            heat_h = alt.Chart(df_ch).mark_rect().encode(
+                x='DeviceName2:O', y='DeviceName:O', color='Corr:Q'
+            ).properties(width=400, height=400)
+            st.altair_chart(heat_h, use_container_width=False)
+
+            # Normalized Differences
+            st.header('Normalized Temperature Difference')
+            df_out = df[df['Device']=='AS10'][['Timestamp','Temp_F','RH']].rename(columns={'Temp_F':'T_out','RH':'RH_out'})
+            df_norm = df.merge(df_out, on='Timestamp')
+            df_norm['DeviceName'] = df_norm['Device'].map(DEVICE_LABELS).fillna(df_norm['Device'])
+            df_norm['Norm_T'] = df_norm['Temp_F'] - df_norm['T_out']
+            chart_norm_t = alt.Chart(df_norm).mark_line().encode(
+                x=alt.X('Timestamp:T', axis=alt.Axis(format='%m/%d')),
+                y=alt.Y('Norm_T:Q', title='Temp Difference (°F)'),
+                color='DeviceName:N'
+            )
+            st.altair_chart(chart_norm_t, use_container_width=True)
+
+            st.header('Normalized Relative Humidity Difference')
+            df_norm['Norm_RH'] = df_norm['RH'] - df_norm['RH_out']
+            chart_norm_rh = alt.Chart(df_norm).mark_line().encode(
+                x=alt.X('Timestamp:T', axis=alt.Axis(format='%m/%d')),
+                y=alt.Y('Norm_RH:Q', title='RH Difference (%)'),
+                color='DeviceName:N'
+            )
+            st.altair_chart(chart_norm_rh, use_container_width=True)
+
+            # Pearson Corr vs Outdoor Reference
+            st.header('Pearson Corr vs Outdoor Reference (Temp)')
+            if 'AS10' not in selected_devices or 'AS10' not in df['Device'].unique():
+                st.info('Outdoor reference data must be selected and available to display Pearson Correlation')
+            else:
+                cvt = compute_correlations(df, field='Temp_F')['Outdoor Reference']
+                st.table(cvt.reset_index().rename(columns={'index':'DeviceName','Outdoor Reference':'Corr'}))
+
+            st.header('Pearson Corr vs Outdoor Reference (RH)')
+            if 'AS10' not in selected_devices or 'AS10' not in df['Device'].unique():
+                st.info('Outdoor reference data must be selected and available to display Pearson Correlation')
+            else:
+                cvr = compute_correlations(df, field='RH')['Outdoor Reference']
+                st.table(cvr.reset_index().rename(columns={'index':'DeviceName','Outdoor Reference':'Corr'}))
+
+            # Summary Statistics
+            st.header('Summary Statistics (Temperature)')
+            st.dataframe(compute_summary_stats(df, field='Temp_F'))
+            st.header('Summary Statistics (Relative Humidity)')
+            st.dataframe(compute_summary_stats(df, field='RH'))
 
 with tab3:
     st.subheader("Sensor Location Images")
