@@ -209,7 +209,7 @@ location_map.update({d: "Crawlspace" for d in crawlspace})
 location_map.update({d: "Attic" for d in attic})
 
 # --- Streamlit App Configuration ---
-st.set_page_config(page_title='St Matthias: 2025 Environmental Data', layout='wide')
+st.set_page_config(page_title='All Souls Cathedral: 2025 Environmental Data', layout='wide')
 # Display logo
 script_dir = os.path.dirname(os.path.abspath(__file__))
 logo_path = os.path.join(script_dir, "Logo.png")
@@ -218,7 +218,7 @@ if os.path.exists(logo_path):
 else:
     st.warning(f"Logo not found at {logo_path}")
 
-st.header('St Matthias: 2025 Environmental Data')
+st.header('All Souls Cathedral: 2025 Environmental Data')
 
 # Sidebar settings
 st.sidebar.title('Settings')
