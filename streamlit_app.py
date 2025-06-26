@@ -491,12 +491,18 @@ with tab2:
 
         # Pearson Corr vs Outdoor Reference
         st.header('Pearson Corr vs Outdoor Reference (Temp)')
-        cvt = compute_correlations(df, field='Temp_F')['Outdoor Reference']
-        st.table(cvt.reset_index().rename(columns={'index':'DeviceName','Outdoor Reference':'Corr'}))
+        if 'AS10' not in selected_devices:
+            st.info('Outdoor reference data must be selected to display Pearson Correlation')
+        else:
+            cvt = compute_correlations(df, field='Temp_F')['Outdoor Reference']
+            st.table(cvt.reset_index().rename(columns={'index':'DeviceName','Outdoor Reference':'Corr'}))
 
         st.header('Pearson Corr vs Outdoor Reference (RH)')
-        cvr = compute_correlations(df, field='RH')['Outdoor Reference']
-        st.table(cvr.reset_index().rename(columns={'index':'DeviceName','Outdoor Reference':'Corr'}))
+        if 'AS10' not in selected_devices:
+            st.info('Outdoor reference data must be selected to display Pearson Correlation')
+        else:
+            cvr = compute_correlations(df, field='RH')['Outdoor Reference']
+            st.table(cvr.reset_index().rename(columns={'index':'DeviceName','Outdoor Reference':'Corr'}))
 
         # Summary Statistics
         st.header('Summary Statistics (Temperature)')
