@@ -472,6 +472,9 @@ with tab2:
 
             # Normalized Differences
             st.header('Normalized Temperature Difference')
+            if 'AS10' not in selected_devices or 'AS10' not in df['Device'].unique():
+                st.info('Outdoor reference data must be selected and available to display Normalized Plots')
+            else:
             df_out = df[df['Device']=='AS10'][['Timestamp','Temp_F','RH']].rename(columns={'Temp_F':'T_out','RH':'RH_out'})
             df_norm = df.merge(df_out, on='Timestamp')
             df_norm['DeviceName'] = df_norm['Device'].map(DEVICE_LABELS).fillna(df_norm['Device'])
@@ -484,6 +487,9 @@ with tab2:
             st.altair_chart(chart_norm_t, use_container_width=True)
 
             st.header('Normalized Relative Humidity Difference')
+            if 'AS10' not in selected_devices or 'AS10' not in df['Device'].unique():
+                st.info('Outdoor reference data must be selected and available to display Normalized Plots')
+            else:
             df_norm['Norm_RH'] = df_norm['RH'] - df_norm['RH_out']
             chart_norm_rh = alt.Chart(df_norm).mark_line().encode(
                 x=alt.X('Timestamp:T', axis=alt.Axis(format='%m/%d')),
