@@ -200,13 +200,17 @@ def dewpoint_f(temp_f, rh):
     return dew_c * 9.0 / 5.0 + 32
 
 # --- Device groupings for KPI Summary ---
-main = [f"AS{i:02d}" for i in range(2, 4)]
-crawlspace = [f"AS{i:02d}" for i in range(4, 6)]
-attic = []  # placeholder for any future attic sensors
+# Derive groups dynamically from DEVICE_LABELS so new files are
+# automatically shown in the sidebar.
+main = [d for d, lbl in DEVICE_LABELS.items() if lbl.endswith("-Main")]
+crawlspace = [d for d, lbl in DEVICE_LABELS.items() if lbl.endswith("-Crawlspace")]
+attic = [d for d, lbl in DEVICE_LABELS.items() if lbl.endswith("-Attic")]
+outdoor = [d for d, lbl in DEVICE_LABELS.items() if "Outdoor" in lbl]
 
 location_map = {d: "Main" for d in main}
 location_map.update({d: "Crawlspace" for d in crawlspace})
 location_map.update({d: "Attic" for d in attic})
+location_map.update({d: "Outdoor" for d in outdoor})
 
 # --- Streamlit App Configuration ---
 st.set_page_config(page_title='All Souls Cathedral: 2025 Environmental Data', layout='wide')
@@ -299,13 +303,8 @@ def group_ui(group, label):
 # Apply groupings
 group_ui(main, 'Main')
 group_ui(crawlspace, 'Crawlspace')
-# Outdoor Reference
-st.sidebar.markdown("**Outdoor Reference**")
-for d in ['AS10']:
-    if d in devices:
-        key = f'chk_{d}'
-        st.session_state.setdefault(key, True)
-        st.sidebar.checkbox(DEVICE_LABELS.get(d, d), key=key)
+group_ui(attic, 'Attic')
+group_ui(outdoor, 'Outdoor Reference')
 
 selected_devices = [d for d in devices if st.session_state.get(f'chk_{d}', False)]
 
