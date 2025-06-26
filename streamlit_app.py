@@ -309,7 +309,7 @@ group_ui(outdoor, 'Outdoor Reference')
 selected_devices = [d for d in devices if st.session_state.get(f'chk_{d}', False)]
 
 # Create tabs
-tab1, tab2 = st.tabs(["Data Analysis", "Data Display"])
+tab1, tab2, tab3 = st.tabs(["Data Analysis", "Data Display", "Sensor Locations"])
 
 with tab1:
     st.subheader("KPI (Key Performance Indicators) Summary")
@@ -499,3 +499,22 @@ with tab2:
         st.dataframe(compute_summary_stats(df, field='Temp_F'))
         st.header('Summary Statistics (Relative Humidity)')
         st.dataframe(compute_summary_stats(df, field='RH'))
+
+with tab3:
+    st.subheader("Sensor Location Images")
+    image_dir = os.path.join(script_dir, "sensor_images")
+    if os.path.isdir(image_dir):
+        images = sorted([
+            f for f in os.listdir(image_dir)
+            if f.lower().endswith((".png", ".jpg", ".jpeg"))
+        ])
+        if not images:
+            st.info("No sensor location images found.")
+        else:
+            for img in images:
+                img_path = os.path.join(image_dir, img)
+                st.image(Image.open(img_path))
+                subtitle = os.path.splitext(img)[0].replace("_", " ").title()
+                st.caption(subtitle)
+    else:
+        st.info("No sensor location images found.")
