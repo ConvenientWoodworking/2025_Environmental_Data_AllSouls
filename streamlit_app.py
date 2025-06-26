@@ -101,8 +101,8 @@ KPI_COLOR_RANGES = {
             "yellow": (40, 100),
         },
         "Temperature Swing (°F)": {
-            "green": (None, 30),
-            "yellow": (30, 45),
+            "green": (None, 45),
+            "yellow": (45, 75),
         },
         "Average Relative Humidity (%)": {
             "green": (30, 50),
