@@ -475,28 +475,28 @@ with tab2:
             if 'AS10' not in selected_devices or 'AS10' not in df['Device'].unique():
                 st.info('Outdoor reference data must be selected and available to display Normalized Plots')
             else:
-            df_out = df[df['Device']=='AS10'][['Timestamp','Temp_F','RH']].rename(columns={'Temp_F':'T_out','RH':'RH_out'})
-            df_norm = df.merge(df_out, on='Timestamp')
-            df_norm['DeviceName'] = df_norm['Device'].map(DEVICE_LABELS).fillna(df_norm['Device'])
-            df_norm['Norm_T'] = df_norm['Temp_F'] - df_norm['T_out']
-            chart_norm_t = alt.Chart(df_norm).mark_line().encode(
-                x=alt.X('Timestamp:T', axis=alt.Axis(format='%m/%d')),
-                y=alt.Y('Norm_T:Q', title='Temp Difference (°F)'),
-                color='DeviceName:N'
-            )
-            st.altair_chart(chart_norm_t, use_container_width=True)
+                df_out = df[df['Device']=='AS10'][['Timestamp','Temp_F','RH']].rename(columns={'Temp_F':'T_out','RH':'RH_out'})
+                df_norm = df.merge(df_out, on='Timestamp')
+                df_norm['DeviceName'] = df_norm['Device'].map(DEVICE_LABELS).fillna(df_norm['Device'])
+                df_norm['Norm_T'] = df_norm['Temp_F'] - df_norm['T_out']
+                chart_norm_t = alt.Chart(df_norm).mark_line().encode(
+                    x=alt.X('Timestamp:T', axis=alt.Axis(format='%m/%d')),
+                    y=alt.Y('Norm_T:Q', title='Temp Difference (°F)'),
+                    color='DeviceName:N'
+                )
+                st.altair_chart(chart_norm_t, use_container_width=True)
 
             st.header('Normalized Relative Humidity Difference')
             if 'AS10' not in selected_devices or 'AS10' not in df['Device'].unique():
                 st.info('Outdoor reference data must be selected and available to display Normalized Plots')
             else:
-            df_norm['Norm_RH'] = df_norm['RH'] - df_norm['RH_out']
-            chart_norm_rh = alt.Chart(df_norm).mark_line().encode(
-                x=alt.X('Timestamp:T', axis=alt.Axis(format='%m/%d')),
-                y=alt.Y('Norm_RH:Q', title='RH Difference (%)'),
-                color='DeviceName:N'
-            )
-            st.altair_chart(chart_norm_rh, use_container_width=True)
+                df_norm['Norm_RH'] = df_norm['RH'] - df_norm['RH_out']
+                chart_norm_rh = alt.Chart(df_norm).mark_line().encode(
+                    x=alt.X('Timestamp:T', axis=alt.Axis(format='%m/%d')),
+                    y=alt.Y('Norm_RH:Q', title='RH Difference (%)'),
+                    color='DeviceName:N'
+                )
+                st.altair_chart(chart_norm_rh, use_container_width=True)
 
             # Pearson Corr vs Outdoor Reference
             st.header('Pearson Corr vs Outdoor Reference (Temp)')
