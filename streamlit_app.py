@@ -317,7 +317,7 @@ tab1, tab2, tab3 = st.tabs(["Data Analysis", "Data Display", "Sensor Locations"]
 
 with tab1:
     st.subheader("KPI (Key Performance Indicators) Summary")
-    st.body("Note: KPI targets are based on a occupied structure.")
+    st.caption("Note: KPI targets are based on a occupied structure.")
     if df_all.empty:
         st.info("No data available for the selected date range.")
     else:
